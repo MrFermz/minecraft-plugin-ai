@@ -19,4 +19,4 @@ dependencyResolutionManagement {
 include("minecraft-plugin-core")
 include("minecraft-plugin-money")
 include("minecraft-plugin-healthbar")
-include("minecraft-plugin-setting")
+include("minecraft-plugin-menu")

@@ -7,6 +7,6 @@
 [submodule "minecraft-plugin-core"]
 	path = minecraft-plugin-core
 	url = https://github.com/Mrfermz/minecraft-plugin-core.git
-[submodule "minecraft-plugin-setting"]
-	path = minecraft-plugin-setting
-	url = https://github.com/MrFermz/minecraft-plugin-setting.git
+[submodule "minecraft-plugin-menu"]
+	path = minecraft-plugin-menu
+	url = https://github.com/MrFermz/minecraft-plugin-menu.git
