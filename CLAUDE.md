@@ -103,7 +103,7 @@ File dir = EcosystemData.folder(this, "money");
 
 - Package root: **`com.mrfermz.mcplugins`** — core อยู่ใต้ `.core` (`.core.api`, `.core.db`, `.core.config`, `.core.log`), feature plugin อยู่ใต้ชื่อตัวเอง เช่น money = `com.mrfermz.mcplugins.money`
 - ห้าม plugin ใดสร้าง connection pool ของตัวเอง — ดึงจาก `minecraft-plugin-core` เท่านั้น
-- Logging: ใช้ wrapper กลาง `com.mrfermz.mcplugins.core.log.PluginLog` (`PluginLog.of(this)`) — format เหมือนกันทุก plugin **และ forward ทุกบรรทัดเข้า `LogService` กลางของ core อัตโนมัติ** (sink: file `plugins/antitle/logs/` + ตาราง `core_logs`, async) — **ตอนนี้ sink ปิดไว้ default (opt-in)** เก็บแค่ money transaction ก่อน; เปิดที่ `logging.*` ใน global `config.yml` feature plugin ไม่ต้อง wire logging เอง แค่ใช้ `PluginLog` ดู [core README](minecraft-plugin-core/README.md#centralized-logging-logservice)
+- Logging: ใช้ wrapper กลาง `com.mrfermz.mcplugins.core.log.PluginLog` (`PluginLog.of(this)`) format ข้อความให้เหมือนกันทุก plugin (print ลง console) — **ยังไม่มี centralized log persistence**; ที่ persist ลง DB ตอนนี้คือ money transaction อย่างเดียว (ตาราง `money_transactions` เขียนผ่าน core `DatabaseService`)
 - **DB schema convention: ทุกตารางมี `id` เป็น PRIMARY KEY ที่ gen ด้วย UUID ใน Java** (`UUID.randomUUID()`, คอลัมน์ `VARCHAR(36)` ใช้ได้ทุก engine) ไม่ใช้ auto-increment ของ DB — natural key (เช่น player uuid ใน `money_balances`) ทำเป็นคอลัมน์ `UNIQUE` แยกไว้ทำ upsert
 
 ### ชื่อ plugin ที่โชว์ใน `/pl`
