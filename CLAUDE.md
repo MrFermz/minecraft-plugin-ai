@@ -103,7 +103,7 @@ File dir = EcosystemData.folder(this, "money");
 
 - Package root: **`com.mrfermz.mcplugins`** — core อยู่ใต้ `.core` (`.core.api`, `.core.db`, `.core.config`, `.core.log`), feature plugin อยู่ใต้ชื่อตัวเอง เช่น money = `com.mrfermz.mcplugins.money`
 - ห้าม plugin ใดสร้าง connection pool ของตัวเอง — ดึงจาก `minecraft-plugin-core` เท่านั้น
-- Logging: ใช้ logger ของ Bukkit/Paper (`getLogger()`) ผ่าน wrapper กลางใน `minecraft-plugin-core` เพื่อ format ข้อความให้เหมือนกันทุก plugin
+- Logging: ใช้ wrapper กลาง `com.mrfermz.mcplugins.core.log.PluginLog` (`PluginLog.of(this)`) — format เหมือนกันทุก plugin **และ forward ทุกบรรทัดเข้า `LogService` กลางของ core อัตโนมัติ** (persist ลง file `plugins/antitle/logs/` + ตาราง `core_logs` ใน central DB แบบ async) feature plugin ไม่ต้อง wire logging เอง แค่ใช้ `PluginLog`; toggle/level ตั้งที่ `logging.*` ใน global `config.yml` ดู [core README](minecraft-plugin-core/README.md#centralized-logging-logservice)
 
 ### ชื่อ plugin ที่โชว์ใน `/pl`
 
