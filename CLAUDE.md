@@ -22,13 +22,14 @@ minecraft-plugins/
 │       ├── db/                       # DataSource, migration, repository ฐาน
 │       └── config/                   # client เชื่อมต่อ web-config (REST/poll หรือ webhook)
 ├── minecraft-plugin-money/            # feature plugin: สกุลเงิน/เศรษฐกิจ (compileOnly core + shadow, ใช้ central DB)
-├── minecraft-plugin-healthbar/        # feature plugin: health bar เหนือหัว entity เมื่อโดนผู้เล่นตี (compileOnly core, ไม่แตะ DB)
+├── minecraft-plugin-healthbar/        # feature plugin: health bar เหนือหัว entity เมื่อโดนผู้เล่นตี (compileOnly core, อ่าน per-player setting)
+├── minecraft-plugin-setting/          # feature plugin: UI ตั้งค่าต่อผู้เล่น (/setting) — render setting ที่ plugin อื่น register ผ่าน Paper Dialog API
 ├── minecraft-plugin-<feature3>/
 ├── webconfig/                         # web service แยกหาก (อ่าน/เขียน DB เดียวกับ plugin)
 └── docs/
 ```
 
-> ทุก module ที่เป็น plugin (รวม core) ใช้ prefix `minecraft-plugin-<name>` ให้ตรงกันทั้ง repo — เช่น `minecraft-plugin-core`, `minecraft-plugin-money`, `minecraft-plugin-healthbar`
+> ทุก module ที่เป็น plugin (รวม core) ใช้ prefix `minecraft-plugin-<name>` ให้ตรงกันทั้ง repo — เช่น `minecraft-plugin-core`, `minecraft-plugin-money`, `minecraft-plugin-healthbar`, `minecraft-plugin-setting`
 
 > **feature plugin ไม่จำเป็นต้องใช้ DB/service ของ core ทุกตัว** — ทุกตัว depend on core (เพื่อ `EcosystemData` + logging กลาง ตาม convention) แต่ตัวที่ไม่มี persistent state (เช่น `minecraft-plugin-healthbar`) ใช้แค่ config dir รวม + `PluginLog` พอ ไม่ต้องขอ `DatabaseService` หรือ register service ใด ๆ
 
@@ -99,9 +100,19 @@ File dir = EcosystemData.folder(this, "money");
 - **ห้าม plugin เปิด pool/DB เอง** — ดึง `DataSource` จาก `CoreApi.database(server)` เท่านั้น
 - Migration ใช้เครื่องมือเดียว (เช่น Flyway) รันจาก `minecraft-plugin-core` ตอน startup หรือจาก `webconfig` — เลือกจุดเดียวเป็น single source of truth ห้ามมี 2 ที่รัน migration พร้อมกัน (ตอนนี้แต่ละ plugin ยัง `CREATE TABLE IF NOT EXISTS` ของตัวเองไปก่อน จนกว่าจะตั้ง migration กลาง)
 
+## Per-player settings (ค่าตั้งต่อผู้เล่น)
+
+ค่าตั้งที่เป็น **ของผู้เล่นแต่ละคน** (ไม่ใช่ config ของ server) ใช้ระบบกลางที่ core เป็นเจ้าของ — **อย่าให้ feature plugin เก็บ per-player setting เป็นตาราง/ไฟล์ของตัวเอง**
+
+- core register 2 service เข้า `ServicesManager` (เมื่อ DB พร้อม): `SettingsRegistry` (ทะเบียน metadata ของ setting) + `PlayerPreferenceService` (ที่เก็บค่าต่อผู้เล่น, ตาราง `setting_values`) — อยู่ใน package `com.mrfermz.mcplugins.core.settings`
+- **feature plugin เป็นคนนิยาม setting ของตัวเอง** — ตอน `onEnable` เรียก `CoreApi.settings(server).register(SettingDefinition...)` (key ตั้งชื่อ namespaced เช่น `money.top.visible`, `healthbar.display`) แล้วอ่านค่าผ่าน `CoreApi.preferences(server)` (มี default เสมอ) — **ห้าม reference plugin `Settings` ตรง ๆ** คุยผ่าน core API เท่านั้น (ตามหลักการข้อ 2)
+- **`minecraft-plugin-setting` (`Settings`) เป็นแค่ UI** — render setting ทั้งหมดที่ register ไว้เป็น Paper **Dialog** (`/setting`) แล้วเขียนค่ากลับผ่าน `PlayerPreferenceService` ไม่มี state/ตารางของตัวเอง; เพิ่ม setting ใหม่ = register ที่ feature plugin ไม่ต้องแตะ `Settings`
+- `set(...)` อัปเดต in-memory cache ทันที (ค่ามีผล **realtime** ต่อ consumer ที่อ่านสด เช่น `/money top`) แล้ว flush ลง DB แบบ async; ตาราง `setting_values` ตาม convention DB ปกติ (`id` UUID PK, `player_uuid`+`setting_key` UNIQUE, `created_at`/`created_by`)
+- ทั้งสอง service เป็น **optional** สำหรับ consumer — null-check/`ifPresent` ไว้ ถ้า core DB ไม่ขึ้น feature ต้องยังทำงานได้ด้วยค่า default
+
 ## Conventions
 
-- Package root: **`com.mrfermz.mcplugins`** — core อยู่ใต้ `.core` (`.core.api`, `.core.db`, `.core.config`, `.core.log`), feature plugin อยู่ใต้ชื่อตัวเอง เช่น money = `com.mrfermz.mcplugins.money`
+- Package root: **`com.mrfermz.mcplugins`** — core อยู่ใต้ `.core` (`.core.api`, `.core.db`, `.core.config`, `.core.log`, `.core.settings`), feature plugin อยู่ใต้ชื่อตัวเอง เช่น money = `com.mrfermz.mcplugins.money`, setting = `com.mrfermz.mcplugins.setting`
 - ห้าม plugin ใดสร้าง connection pool ของตัวเอง — ดึงจาก `minecraft-plugin-core` เท่านั้น
 - Logging: ใช้ wrapper กลาง `com.mrfermz.mcplugins.core.log.PluginLog` (`PluginLog.of(this)`) format ข้อความให้เหมือนกันทุก plugin (print ลง console) — **ยังไม่มี centralized log persistence**; ที่ persist ลง DB ตอนนี้คือ money transaction อย่างเดียว (ตาราง `money_transactions` เขียนผ่าน core `DatabaseService`)
 - **DB schema convention: ทุกตารางมี `id` เป็น PRIMARY KEY ที่ gen ด้วย UUID ใน Java** (`UUID.randomUUID()`, คอลัมน์ `VARCHAR(36)` ใช้ได้ทุก engine) ไม่ใช้ auto-increment ของ DB — natural key (เช่น player uuid ใน `money_balances`) ทำเป็นคอลัมน์ `UNIQUE` แยกไว้ทำ upsert
