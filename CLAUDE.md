@@ -133,4 +133,5 @@ File dir = EcosystemData.folder(this, "money");
 ## การดูแลเอกสาร
 
 - ไฟล์นี้ (`CLAUDE.md`) เก็บเฉพาะ convention/architecture ที่ใช้ร่วมกันทั้ง ecosystem — เมื่อมีการแก้ไขที่กระทบ convention ส่วนกลาง (เช่น เปลี่ยนวิธี module คุยกัน, เปลี่ยน DB engine, เพิ่ม module ใหม่ที่กระทบโครงสร้าง) ให้ update ไฟล์นี้ตามไปด้วย
+- **root `README.md`** (หน้า repo บน GitHub) เป็นภาพรวม ecosystem สำหรับคนนอก — เมื่อมีการเปลี่ยนที่กระทบส่วนกลาง (เพิ่ม/ลบ/เปลี่ยนชื่อ module, ตาราง modules + ชื่อใน `/pl`, วิธี build/clone, target platform, DB engine) ให้ update root `README.md` ควบคู่กับ `CLAUDE.md` ด้วย (CLAUDE.md = convention เชิงลึกสำหรับคนทำงานในโค้ด, README.md = ภาพรวมสำหรับคนนอก)
 - แต่ละ module/plugin (เช่น `minecraft-plugin-core`, `minecraft-plugin-<feature>`, `webconfig`) ให้มี `README.md` ของตัวเองอธิบายรายละเอียดเฉพาะของ module นั้น — เมื่อแก้โค้ดใน module ไหน ให้ update README.md ของ module นั้น (สร้างใหม่ถ้ายังไม่มี) แทนการยัดรายละเอียดเฉพาะ module ไว้ใน CLAUDE.md ส่วนกลาง
