@@ -1,0 +1,9 @@
+[submodule "minecraft-plugin-money"]
+	path = minecraft-plugin-money
+	url = https://github.com/MrFermz/minecraft-plugin-money.git
+[submodule "minecraft-plugin-healthbar"]
+	path = minecraft-plugin-healthbar
+	url = https://github.com/MrFermz/minecraft-plugin-healthbar.git
+[submodule "minecraft-plugin-core"]
+	path = minecraft-plugin-core
+	url = https://github.com/Mrfermz/minecraft-plugin-core.git
