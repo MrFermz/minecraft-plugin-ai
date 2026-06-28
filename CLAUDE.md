@@ -49,7 +49,7 @@ minecraft-plugins/
 - jar ที่ deploy ได้ต้องผ่าน shadow/shading (relocate dependency กันชนกับ plugin อื่นบน server เดียวกัน)
 - **การตัดสินใจที่ fix แล้ว (ตอนตั้ง module แรก): `minecraft-plugin-core` ถูก load เป็น plugin แยกบน server** (ไม่ shade เข้าแต่ละ plugin) เพื่อให้ connection pool + web-config client มีอยู่ชุดเดียวจริง ๆ — feature plugin ทุกตัวจึง:
   1. `compileOnly(project(":minecraft-plugin-core"))` ใน `build.gradle.kts` (ไม่ bundle core เข้า jar ตัวเอง)
-  2. ใส่ `depend: [MinecraftPluginCore]` ใน `plugin.yml` เพื่อบังคับลำดับ load
+  2. ใส่ `depend: [Core]` ใน `plugin.yml` เพื่อบังคับลำดับ load (อ้างชื่อ plugin สั้นของ core ตาม [convention ชื่อ plugin](#ชื่อ-plugin-ที่โชว์ใน-pl))
   3. คุยกับ core ตอน runtime ผ่าน Bukkit `ServicesManager` (ตัวช่วย `com.mrfermz.mcplugins.core.CoreApi`)
 - ใส่ plugin ใหม่: เพิ่ม `include(...)` ใน `settings.gradle.kts` แล้วทำตาม 3 ข้อบน — shadow jar ใช้ relocate เฉพาะ third-party lib เท่านั้น
 - หลังแก้โค้ด plugin ตัวไหนแล้ว แค่สั่ง build .jar ออกมาให้ (`./gradlew :minecraft-plugin-<name>:build` หรือ `./gradlew build`) ก็พอ **ห้ามสั่งรัน/สตาร์ท server** เพื่อทดสอบ ไม่ใช่ขั้นตอนที่ต้องทำ
@@ -104,6 +104,18 @@ File dir = EcosystemData.folder(this, "money");
 - Package root: **`com.mrfermz.mcplugins`** — core อยู่ใต้ `.core` (`.core.api`, `.core.db`, `.core.config`, `.core.log`), feature plugin อยู่ใต้ชื่อตัวเอง เช่น money = `com.mrfermz.mcplugins.money`
 - ห้าม plugin ใดสร้าง connection pool ของตัวเอง — ดึงจาก `minecraft-plugin-core` เท่านั้น
 - Logging: ใช้ logger ของ Bukkit/Paper (`getLogger()`) ผ่าน wrapper กลางใน `minecraft-plugin-core` เพื่อ format ข้อความให้เหมือนกันทุก plugin
+
+### ชื่อ plugin ที่โชว์ใน `/pl`
+
+- field `name:` ใน `plugin.yml` = **ชื่อสั้นแบบ PascalCase คำเดียว** ที่อ่านสวยใน `/plugins` (`/pl`) — ไม่ใส่คำว่า `Plugin` หรือ prefix `MinecraftPlugin` ต่อท้าย/นำหน้า เช่น `Core`, `Money`, `Healthbar`
+- ชื่อนี้แยกขาดจาก 3 อย่างที่ยังคงเดิม: **ชื่อ Gradle module** (`minecraft-plugin-<name>`), **main class** (`<Name>Plugin` เช่น `MoneyPlugin`), และ **module short name ที่ส่งให้ `EcosystemData`** (`"money"` → `plugins/antitle/money.yml`)
+- `depend:`/`softdepend:` ใน `plugin.yml` ของ plugin อื่นต้องอ้างชื่อสั้นนี้ — feature plugin ทุกตัวใช้ `depend: [Core]` (ไม่ใช่ `[MinecraftPluginCore]` แล้ว)
+- เพิ่ม plugin ใหม่: ตั้ง `name:` เป็นชื่อสั้นคำเดียวให้ unique บน server แล้วอ้างชื่อนั้นใน `depend` ของตัวอื่น
+
+## Git / commit
+
+- **ทุกครั้งที่ทำงาน/แก้ไขตาม prompt เสร็จ ให้เสนอ commit message มาให้เลย** (เป็น Conventional Commits เช่น `feat: ...`, `fix: ...`, `docs: ...`, `refactor: ...`) — แต่ **ห้าม `git add`/stage, `git commit`, `git push` เอง** ปล่อยให้ผู้ใช้เป็นคน commit เอง
+- ถ้าการแก้ไขกินหลาย submodule (`minecraft-plugin-core/money/healthbar` เป็น git repo แยกแต่ละตัว) ให้เสนอ commit message **แยกต่อ repo** ที่ถูกแตะ + commit ของ root repo (`minecraft-plugin-ai`) ถ้ามีการแก้ไฟล์ส่วนกลาง (`CLAUDE.md`, `settings.gradle.kts`, ฯลฯ)
 
 ## การดูแลเอกสาร
 
