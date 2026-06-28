@@ -1,0 +1,18 @@
+# Gradle build outputs (artifacts, not source)
+.gradle/
+build/
+**/build/
+
+# Gradle wrapper jar/scripts ARE committed (reproducible builds) — do not ignore.
+
+# Collected deployable jars from every module (see root build.gradle.kts)
+/jar/
+
+# The live Minecraft test server (runtime data, world, server jar) is not source.
+/minecraft-server
+
+# IDE / OS
+.idea/
+*.iml
+.vscode/
+.DS_Store
