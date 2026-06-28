@@ -105,6 +105,7 @@ File dir = EcosystemData.folder(this, "money");
 - ห้าม plugin ใดสร้าง connection pool ของตัวเอง — ดึงจาก `minecraft-plugin-core` เท่านั้น
 - Logging: ใช้ wrapper กลาง `com.mrfermz.mcplugins.core.log.PluginLog` (`PluginLog.of(this)`) format ข้อความให้เหมือนกันทุก plugin (print ลง console) — **ยังไม่มี centralized log persistence**; ที่ persist ลง DB ตอนนี้คือ money transaction อย่างเดียว (ตาราง `money_transactions` เขียนผ่าน core `DatabaseService`)
 - **DB schema convention: ทุกตารางมี `id` เป็น PRIMARY KEY ที่ gen ด้วย UUID ใน Java** (`UUID.randomUUID()`, คอลัมน์ `VARCHAR(36)` ใช้ได้ทุก engine) ไม่ใช้ auto-increment ของ DB — natural key (เช่น player uuid ใน `money_balances`) ทำเป็นคอลัมน์ `UNIQUE` แยกไว้ทำ upsert
+- **เวลา/ผู้สร้างในตาราง: ใช้ `created_at` เป็น date column จริง** (`TIMESTAMP`; MySQL/MariaDB = `DATETIME`) เขียนผ่าน `setTimestamp`/อ่านผ่าน `getTimestamp` ไม่เก็บเป็น epoch number — และ `created_by` (UUID ของผู้สั่ง, null = console/system) ไม่ใช้ชื่อ `ts`/`actor`; SQLite ตั้ง `date_class=text` ที่ core pool ให้เก็บ date เป็น ISO text อ่านได้
 
 ### ชื่อ plugin ที่โชว์ใน `/pl`
 
